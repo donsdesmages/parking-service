@@ -1,0 +1,20 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: parking-service
+
+  data:
+  datasource:
+    url: "jdbc:postgresql://localhost:5433/client"
+    username: "postgres"
+    password: "postgres"
+
+  jpa:
+    hibernate:
+      ddl-auto:
+
+bot:
+  bot-name: ${BOT_NAME}
+  bot-token: ${BOT_TOKEN}
