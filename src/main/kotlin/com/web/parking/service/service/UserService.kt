@@ -1,5 +1,6 @@
 package com.web.parking.service.service
 
 interface UserService {
-    fun createUser(telegramUserId : Long, userName : String, carNumber : String, regionNumber: String)
+    fun updateUserStateOrCreateUser(telegramUserId : Long, state: String, userName : String, carNumber : String)
+    fun initialStart(chatId: Long, state: String, userName: String, telegramUserId: Long, messageText: String)
 }

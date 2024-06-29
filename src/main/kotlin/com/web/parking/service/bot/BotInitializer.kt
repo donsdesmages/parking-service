@@ -8,6 +8,6 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession
 @Configuration
 class BotInitializer {
     @Bean
-    fun telegramsBotApi(bot: TelegramBot) =
+    fun telegramsBotApi(bot: Bot) =
         TelegramBotsApi(DefaultBotSession::class.java).apply { registerBot(bot) }
 }

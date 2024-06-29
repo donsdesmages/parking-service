@@ -1,0 +1,52 @@
+package com.web.parking.service.messenger
+
+import com.web.parking.service.bot.Bot
+import com.web.parking.service.util.Button
+import com.web.parking.service.util.ReplyMessageСonstant
+import mu.KotlinLogging
+import org.springframework.stereotype.Service
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage
+@Service
+class MessageService(
+    private val telegramBot: Bot
+) {
+    private val log = KotlinLogging.logger {}
+
+    fun greetingUser(chatId: Long, name: String) {
+        val message = createMessage(chatId, "Приветствуем вас, $name!${ReplyMessageСonstant.GREETING}")
+        val button = Button()
+        button.buttonRegistration(message)
+
+        sendMessage(message).also { log.info { "Message has been sending" } }
+    }
+
+    fun greetingRegisteredUser(chatId: Long, name: String) {
+        val message = createMessage(chatId, "$name!${ReplyMessageСonstant.CALLBACK_MENU}")
+        val button = Button()
+        button.menuButton(message)
+
+        sendMessage(message).also { log.info { "Message has been sending to users" } }
+    }
+
+    fun guideForUser(chatId: Long, name: String) {
+        val message = createMessage(chatId, "$name!${ReplyMessageСonstant.SUCCESSFUL}")
+        val button = Button()
+        button.menuButton(message)
+
+        sendMessage(message).also { log.info { "Message has been sending to users" } }
+    }
+
+    fun createMessage(chatId: Long, text: String): SendMessage {
+        val message = SendMessage()
+        message.chatId = chatId.toString()
+        message.text = text
+
+        return message
+    }
+
+    fun sendMessage(message: SendMessage) =
+        telegramBot.execute(message)
+            .runCatching {}
+            .onSuccess { log.info { "Success" } }
+            .onFailure { log.error { "Non success" } }
+}
