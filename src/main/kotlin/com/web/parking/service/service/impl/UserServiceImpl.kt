@@ -8,6 +8,7 @@ import com.web.parking.service.repository.UserRepository
 import com.web.parking.service.service.UserService
 import com.web.parking.service.util.CommandConstant.Companion.REGISTRATION
 import com.web.parking.service.util.CommandConstant.Companion.START
+import com.web.parking.service.util.RegistrationProcessParams
 import com.web.parking.service.util.ReplyMessageСonstant
 import com.web.parking.service.util.ReplyMessageСonstant.Companion.COMMAND_NOT_FOUND
 import mu.KotlinLogging
@@ -20,18 +21,27 @@ class UserServiceImpl(
     private val userRepository: UserRepository,
     private val validateCarServiceImpl: ValidateCarServiceImpl,
     private val checkStateServiceImpl: CheckStateServiceImpl,
+    @Lazy private val commandServiceImpl: СommandServiceImpl,
     @Lazy private val messageService: MessageService
 ) : UserService {
     private val log = KotlinLogging.logger {}
     private val registeredState = State.valueOf("REGISTERED").toString()
     private val registrationProcess = State.valueOf("REGISTRATION_PROCESS").toString()
 
+    fun validateMessage(update: Update?): Boolean {
+        return when {
+            update?.hasMessage() == true && update.message?.hasText() == true -> true
+            update?.callbackQuery != null -> true
+            else -> false
+        }
+    }
 
     fun createUser(telegramUserId: Long,
                    state: String,
                    userName: String,
                    carNumber: String,
-                   regionNumber: String)
+                   regionNumber: String
+    )
     {
         val carEntity = CarEntity(null, carNumber)
         val userEntity = UserEntity(
@@ -44,19 +54,14 @@ class UserServiceImpl(
         userRepository.save(userEntity)
     }
 
-    override fun initialStart(chatId: Long,
-                              state: String,
-                              userName: String,
-                              telegramUserId: Long,
-                              messageText: String
-    )
-    {
-        val checkStateInRepository = userRepository.findStateByTelegramUserId(telegramUserId)
+    override fun initialStart(params: RegistrationProcessParams, state: String) {
+        val checkStateInRepository = userRepository.findStateByTelegramUserId(params.telegramUserId)
         if (checkStateInRepository.toString() != state) {
-            updateUserStateOrCreateUser(telegramUserId, state, userName, messageText)
+            updateUserStateOrCreateUser(params.telegramUserId, state, params.userName, params.messageText)
         } else {
             log.error { "Текущее состояние ${state}, " +
-                    "уже было назначено данному пользователю $userName"
+                    "уже было назначено данному пользователю" +
+                    params.userName
             }
         }
     }
@@ -65,8 +70,7 @@ class UserServiceImpl(
                                              state: String,
                                              userName: String,
                                              carNumber: String
-    )
-    {
+    ) {
         val checkState = checkStateServiceImpl.checkState(telegramUserId, registeredState)
         if (!checkState) {
             val userOptional = userRepository.findStateByTelegramUserId(telegramUserId)
@@ -90,33 +94,20 @@ class UserServiceImpl(
         }
     }
 
-    fun startRegistrationProcess(chatId: Long,
-                                 telegramUserId: Long,
-                                 userName: String,
-                                 messageText: String
-    ): Boolean
-    {
-        updateUserStateOrCreateUser(
-            telegramUserId,
-            registrationProcess,
-            userName,
-            messageText
-        )
+    fun startRegistrationProcess(params: RegistrationProcessParams): Boolean {
+        updateUserStateOrCreateUser(params.telegramUserId, registrationProcess, params.userName, params.messageText)
             .runCatching {}
             .onSuccess { log.info {"User was created"} }
             .onFailure { log.error {  "User No created"} }
 
-        val checkState = checkStateServiceImpl.checkState(telegramUserId, registrationProcess)
+        val checkState = checkStateServiceImpl.checkState(params.telegramUserId, registrationProcess)
         if (checkState) {
-            if (messageText != REGISTRATION) {
-                if (validateCarServiceImpl.validateCarNumber(chatId, messageText)) {
-                    updateUserStateOrCreateUser(
-                        telegramUserId,
-                        registeredState,
-                        userName,
-                        messageText
+            if (params.messageText != REGISTRATION) {
+                if (validateCarServiceImpl.validateCarNumber(params.chatId, params.messageText)) {
+                    updateUserStateOrCreateUser(params.telegramUserId, registeredState, params.userName,
+                        params.messageText
                     )
-                    messageService.guideForUser(chatId)
+                    messageService.guideForUser(params.chatId)
                     return true
                 }
             }
@@ -129,80 +120,75 @@ class UserServiceImpl(
         val chatId = update?.message?.chatId ?: 0
         val userName = update?.message?.chat?.firstName ?: ""
         val telegramUserId = update?.message?.chat?.id ?: 0
+        val callbackQuery = update?.callbackQuery
+        val data = callbackQuery?.data
+        val chatIdInlineCallback = callbackQuery?.message?.chatId ?: 0
+
+        val params = RegistrationProcessParams(
+            chatId,
+            telegramUserId,
+            userName,
+            messageText
+        )
+
+        data?.let { commandServiceImpl.checkingHeadMenuCommand(it, chatIdInlineCallback) }
 
         if(messageText == START) {
-            handleUserRegistrationOrGreeting(telegramUserId, userName, messageText, chatId)
+            handleUserRegistrationOrGreeting(params)
                 .also { log.info { "User calling parking-service-bot with command /start" } }
         }
 
-        if (messageText == REGISTRATION) { checkAndStartRegistration(chatId, telegramUserId, userName, messageText) }
+        if (messageText == REGISTRATION) { checkAndStartRegistration(params, "") }
         val userState = userRepository.findStateByTelegramUserId(telegramUserId)
 
         when (State.valueOf(userState.get().state)) {
-            State.NO_REGISTERED -> handleStartCommand(chatId, userName, telegramUserId, messageText)
+            State.NO_REGISTERED -> handleStartCommand(params)
             State.REGISTRATION_PROCESS -> {
-                handleRegistrationCommand(chatId, userName, telegramUserId, messageText)
+                startRegistrationProcess(params)
             }
-            State.REGISTERED -> { handleRegisteredUser(chatId, userName) }
+            State.REGISTERED -> {  messageService.greetingRegisteredUser(chatId, userName) }
             else -> {
-                handleUnknownCommand(chatId)
-            }
-        }
-    }
-
-    fun handleUserRegistrationOrGreeting(telegramUserId: Long,
-                                         userName: String,
-                                         messageText: String,
-                                         chatId: Long
-    ) {
-        val state = State.valueOf("NO_REGISTERED").toString()
-        val validateUser = validateUser(telegramUserId)
-
-        if (validateUser) {
-            updateUserStateOrCreateUser(telegramUserId, state, userName, messageText)
-        } else {
-            val checkState = checkStateServiceImpl.checkState(telegramUserId, state)
-            if (!checkState) {
-                messageService.sendMessage(messageService.createMessage(
-                        chatId, "Приветствуем вас, $userName"
-                                + ReplyMessageСonstant.CHOOSE_AN_ACTON
+                messageService.sendMessage(
+                    messageService.createMessage(chatId, ReplyMessageСonstant.MESSAGE_START
                     ))
             }
         }
     }
 
-    fun checkAndStartRegistration(chatId: Long?,
-                                  telegramUserId: Long?,
-                                  userName: String?,
-                                  messageText: String?
-    ) {
-        if (chatId == null || telegramUserId == null || userName == null || messageText == null) {
-            log.error {
-                "One of the required parameters is null: " +
-                        "chatId=$chatId, " +
-                        "telegramUserId=$telegramUserId, " +
-                        "userName=$userName, " +
-                        "messageText=$messageText"}
-            return
-        }
-
-        val checkState = checkStateServiceImpl.checkState(telegramUserId, registrationProcess)
-        val checkRegisteredState = checkStateServiceImpl.checkState(telegramUserId, registeredState)
-        if (!checkState && !checkRegisteredState) {
-            messageService.sendMessage(messageService.createMessage(
-                chatId, ReplyMessageСonstant.REGISTRATION_GUIDE
-            ))
-            initialStart(chatId, registrationProcess, userName, telegramUserId, messageText)
+    fun handleUserRegistrationOrGreeting(params: RegistrationProcessParams) {
+        val state = State.valueOf("NO_REGISTERED").toString()
+        val validateUser = validateUser(params.telegramUserId)
+        if (validateUser) updateUserStateOrCreateUser(params.telegramUserId,
+            state,
+            params.userName,
+            params.messageText
+        )
+        else {
+            val checkState = checkStateServiceImpl.checkState(params.telegramUserId, state)
+            if (!checkState) {
+                //todo: добавить inline кнопки "Помощь", "Перекрыл выезд", "Информация о нас"
+                messageService.sendMessage(messageService.createMessage(
+                        params.chatId, "Приветствуем вас, " +
+                            params.userName + "!" /*+ ReplyMessageСonstant.CHOOSE_AN_ACTON*/
+                    ))
+            }
         }
     }
 
-    fun handleStartCommand(chatId: Long, userName: String, telegramUserId: Long, messageText: String) {
-        if (messageText == START) {
-            messageService.greetingUser(chatId, userName)
-        } else {
-            messageService.sendMessage(
-                messageService.createMessage(chatId, COMMAND_NOT_FOUND))
+    fun checkAndStartRegistration(params: RegistrationProcessParams, state: String) {
+        val checkState = checkStateServiceImpl.checkState(params.telegramUserId, registrationProcess)
+        val checkRegisteredState = checkStateServiceImpl.checkState(params.telegramUserId, registeredState)
+        if (!checkState && !checkRegisteredState) {
+            messageService.sendMessage(messageService.createMessage(
+                params.chatId, ReplyMessageСonstant.REGISTRATION_GUIDE
+            ))
+            initialStart(params, registrationProcess)
         }
+    }
+
+    fun handleStartCommand(params: RegistrationProcessParams) {
+        if (params.messageText == START) messageService.greetingUser(params.chatId, params.userName)
+        else messageService.sendMessage(messageService.createMessage(params.chatId, COMMAND_NOT_FOUND))
     }
 
     fun validateUser(telegramUserId: Long): Boolean {
@@ -211,22 +197,5 @@ class UserServiceImpl(
             ?.telegramUserId ?: ""
 
         return checkTelegramIdInDataBase != telegramUserId
-    }
-
-    fun handleUnknownCommand(chatId: Long) {
-        messageService.sendMessage(
-            messageService.createMessage(chatId, ReplyMessageСonstant.MESSAGE_START
-        ))
-    }
-
-    fun handleRegisteredUser(chatId: Long, userName: String) {
-        messageService.greetingRegisteredUser(chatId, userName)
-    }
-
-    fun handleRegistrationCommand(chatId: Long,
-                                  userName: String,
-                                  telegramUserId: Long,
-                                  messageText: String) {
-        startRegistrationProcess(chatId, telegramUserId, userName, messageText)
     }
 }

@@ -11,8 +11,6 @@ class CheckStateServiceImpl(
 ) : CheckStateService {
     override fun checkState(telegramUserId: Long, state: String): Boolean {
         val userState = userRepository.findStateByTelegramUserId(telegramUserId).orElse(null)
-        return userState?.let {
-            State.valueOf(it.state).toString() == state
-        } ?: false
+        return userState?.let { State.valueOf(it.state).toString() == state } ?: false
     }
 }

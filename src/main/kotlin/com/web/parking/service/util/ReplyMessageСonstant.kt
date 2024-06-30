@@ -3,6 +3,10 @@ package com.web.parking.service.util
 class ReplyMessageСonstant {
 
     companion object {
+        const val SELECTION_OPTION = "" +
+                "Вы находитесь в главном меню Parking-Bot. \uD83D\uDE97\n" +
+                "Выберите одну из следующих опций:\n"
+
         const val COMMAND_NOT_FOUND = "Бот не знает такой команды." +
                 "\n" + "Для взаимодействия, нажмите /start"
 
@@ -23,7 +27,8 @@ class ReplyMessageСonstant {
         const val FAIL = "Введенный регистрационный номер автомобиля не найден." +
                 "\n" + "Пожалуйста, попробуйте еще раз."
 
-        const val CHOOSE_AN_ACTON : String = "" + "\n" + "Выберите действие: " // тут нужно дать на выбор две кнопки, "Я подпер тачку" и "Помощь"
+        const val CHOOSE_AN_ACTON : String = "" + "\n" + "Выберите опцию: " // тут нужно дать на выбор две кнопки,
+    // "Перекрыл выезд" и "Помощь"
     }
 }
 

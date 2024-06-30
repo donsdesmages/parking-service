@@ -10,4 +10,5 @@ class BotInitializer {
     @Bean
     fun telegramsBotApi(bot: Bot) =
         TelegramBotsApi(DefaultBotSession::class.java).apply { registerBot(bot) }
+
 }

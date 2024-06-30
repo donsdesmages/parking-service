@@ -44,6 +44,7 @@ class Button {
 
         message.replyMarkup = inlineKeyboardMarkup
     }
+
     fun buttonRegistration(message: SendMessage) {
         createButton( "Регистрация",
             message,
@@ -53,17 +54,26 @@ class Button {
         )
     }
 
-    fun buttonBlocked(message: SendMessage) {
-        createButton("Заблокировал выезд", message,
-            resize = true,
-            oneTime = true,
-            selective = true
-        )
+    fun buttonRegistrationInline(message: SendMessage): List<InlineKeyboardButton> {
+        val button = InlineKeyboardButton().apply {
+            text = "Регистрация"
+            callbackData = "registration"
+        }
+        return listOf(button)
+    }
+
+    fun buttonBlocked(message: SendMessage): List<InlineKeyboardButton> {
+        val button = InlineKeyboardButton().apply {
+            text = "Перекрыл выезд"
+            callbackData = "blocked_exit"
+        }
+        return listOf(button)
     }
     fun menuButton(message: SendMessage) {
         createInlineButton(
             "Главное Меню",
-            "head_menu", message
+            "head_menu",
+            message
         )
     }
 }

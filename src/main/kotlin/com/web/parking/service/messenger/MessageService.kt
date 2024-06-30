@@ -6,6 +6,9 @@ import com.web.parking.service.util.ReplyMessageСonstant
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
+
 @Service
 class MessageService(
     private val telegramBot: Bot
@@ -32,6 +35,22 @@ class MessageService(
         val message = createMessage(chatId, ReplyMessageСonstant.SUCCESSFUL)
         val button = Button()
         button.menuButton(message)
+
+        sendMessage(message).also { log.info { "Message has been sending to users" } }
+    }
+
+    fun selectionOption(chatId: Long) {
+        val message = createMessage(chatId, ReplyMessageСonstant.SELECTION_OPTION)
+        val button = Button()
+        val inlineKeyboardButtons = mutableListOf<List<InlineKeyboardButton>>()
+
+        inlineKeyboardButtons.add(button.buttonBlocked(message))
+        inlineKeyboardButtons.add(button.buttonRegistrationInline(message))
+
+        val inlineKeyboardMarkup = InlineKeyboardMarkup()
+        inlineKeyboardMarkup.keyboard = inlineKeyboardButtons
+
+        message.replyMarkup = inlineKeyboardMarkup
 
         sendMessage(message).also { log.info { "Message has been sending to users" } }
     }

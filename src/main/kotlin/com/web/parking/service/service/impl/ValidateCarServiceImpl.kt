@@ -8,7 +8,6 @@ import com.web.parking.service.util.RegexConstant.Companion.REGULAR_EXPRESSION
 import com.web.parking.service.util.ReplyMessageСonstant
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Service
-import org.telegram.telegrambots.meta.api.objects.Update
 
 @Service
 class ValidateCarServiceImpl(
@@ -16,9 +15,6 @@ class ValidateCarServiceImpl(
     private val carRepository: CarRepository,
     @Lazy private val messageService: MessageService
 ) : ValidateCarService {
-
-    override fun validateMessage(update: Update?): Boolean =
-        update?.hasMessage() == true && update.message?.hasText() == true
 
     override fun validateCarNumber(chatId: Long, carNumber: String): Boolean {
         val checkCarNumberInRepository = checkCarNumberInRepository(carNumber)
