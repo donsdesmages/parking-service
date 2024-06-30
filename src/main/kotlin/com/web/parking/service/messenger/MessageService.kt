@@ -21,15 +21,15 @@ class MessageService(
     }
 
     fun greetingRegisteredUser(chatId: Long, name: String) {
-        val message = createMessage(chatId, "$name!${ReplyMessageСonstant.CALLBACK_MENU}")
+        val message = createMessage(chatId, ReplyMessageСonstant.CALLBACK_MENU)
         val button = Button()
         button.menuButton(message)
 
         sendMessage(message).also { log.info { "Message has been sending to users" } }
     }
 
-    fun guideForUser(chatId: Long, name: String) {
-        val message = createMessage(chatId, "$name!${ReplyMessageСonstant.SUCCESSFUL}")
+    fun guideForUser(chatId: Long) {
+        val message = createMessage(chatId, ReplyMessageСonstant.SUCCESSFUL)
         val button = Button()
         button.menuButton(message)
 

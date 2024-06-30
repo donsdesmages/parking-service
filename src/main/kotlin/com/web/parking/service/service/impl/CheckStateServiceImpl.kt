@@ -9,7 +9,10 @@ import org.springframework.stereotype.Service
 class CheckStateServiceImpl(
     private val userRepository: UserRepository
 ) : CheckStateService {
-    override fun checkState(telegramUserId: Long, state: String): Boolean =
-        State.valueOf(userRepository.findStateByTelegramUserId(telegramUserId)
-            .get().state).toString() == state
+    override fun checkState(telegramUserId: Long, state: String): Boolean {
+        val userState = userRepository.findStateByTelegramUserId(telegramUserId).orElse(null)
+        return userState?.let {
+            State.valueOf(it.state).toString() == state
+        } ?: false
+    }
 }

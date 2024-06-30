@@ -3,7 +3,6 @@ package com.web.parking.service.service.impl
 import com.web.parking.service.messenger.MessageService
 import com.web.parking.service.repository.CarRepository
 import com.web.parking.service.repository.RegionsRepository
-import com.web.parking.service.repository.UserRepository
 import com.web.parking.service.service.ValidateCarService
 import com.web.parking.service.util.RegexConstant.Companion.REGULAR_EXPRESSION
 import com.web.parking.service.util.ReplyMessageСonstant
