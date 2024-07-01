@@ -1,7 +1,6 @@
 package com.web.parking.service.bot
 
 import com.web.parking.service.service.impl.UserServiceImpl
-import com.web.parking.service.util.RegistrationProcessParams
 import mu.KotlinLogging.logger
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
@@ -12,8 +11,6 @@ class Bot(
     private val botConfig: BotConfig,
     private val userServiceImpl: UserServiceImpl,
 ) : TelegramLongPollingBot(botConfig.botToken) {
-    private val log = logger {}
-
 
     override fun onUpdateReceived(update: Update?) {
         if (userServiceImpl.validateMessage(update)) {

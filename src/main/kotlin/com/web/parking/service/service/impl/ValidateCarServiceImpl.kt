@@ -35,17 +35,17 @@ class ValidateCarServiceImpl(
                         ))
                 }
 
-                return checkResult;
+                return checkResult
             }
             messageService.sendMessage(
-                messageService.createMessage(chatId,
-                    ReplyMessageСonstant.FAIL
+                messageService.createMessage(chatId, ReplyMessageСonstant.FAIL
                 ))
         }
         else {
             messageService.sendMessage(
                 messageService.createMessage(chatId, ReplyMessageСonstant.ALREADY_REGISTERED
                 ))
+            return false
         }
 
         return false
@@ -63,13 +63,7 @@ class ValidateCarServiceImpl(
     }
 
     fun checkCarNumberInRepository(carNumber: String): Boolean {
-        val checkCarNumber = carRepository.findAll()
-
-        for (numberCar in checkCarNumber) {
-            if (numberCar.carNumber.trim() == carNumber) {
-                return true
-            }
-        }
-        return false
+        val existingCar = carRepository.findByCarNumber(carNumber.trim())
+        return existingCar == null
     }
 }

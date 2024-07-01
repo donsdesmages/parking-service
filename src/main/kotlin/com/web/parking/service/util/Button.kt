@@ -54,26 +54,27 @@ class Button {
         )
     }
 
-    fun buttonRegistrationInline(message: SendMessage): List<InlineKeyboardButton> {
-        val button = InlineKeyboardButton().apply {
-            text = "Регистрация"
-            callbackData = "registration"
-        }
-        return listOf(button)
-    }
-
-    fun buttonBlocked(message: SendMessage): List<InlineKeyboardButton> {
-        val button = InlineKeyboardButton().apply {
-            text = "Перекрыл выезд"
-            callbackData = "blocked_exit"
-        }
-        return listOf(button)
-    }
     fun menuButton(message: SendMessage) {
         createInlineButton(
             "Главное Меню",
             "head_menu",
             message
         )
+    }
+
+    fun changeDataCarUser(): List<InlineKeyboardButton> {
+        val button = InlineKeyboardButton().apply {
+            text = "Изменить данные"
+            callbackData = "change"
+        }
+        return listOf(button)
+    }
+
+    fun buttonBlocked(): List<InlineKeyboardButton> {
+        val button = InlineKeyboardButton().apply {
+            text = "Перекрыл выезд"
+            callbackData = "blocked_exit"
+        }
+        return listOf(button)
     }
 }

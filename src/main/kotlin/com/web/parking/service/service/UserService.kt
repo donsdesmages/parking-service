@@ -1,6 +1,6 @@
 package com.web.parking.service.service
 
-import com.web.parking.service.util.RegistrationProcessParams
+import com.web.parking.service.util.param.RegistrationProcessParam
 
 interface UserService {
     fun updateUserStateOrCreateUser(telegramUserId: Long,
@@ -8,5 +8,5 @@ interface UserService {
                                     userName: String,
                                     carNumber: String
     )
-    fun initialStart(params: RegistrationProcessParams, state: String)
+    fun initialStart(params: RegistrationProcessParam, state: String)
 }

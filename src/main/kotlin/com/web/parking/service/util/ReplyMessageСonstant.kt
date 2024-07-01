@@ -1,8 +1,16 @@
 package com.web.parking.service.util
 
 class ReplyMessageСonstant {
-
     companion object {
+        const val SUCCESSFULLY_CHANGE_DATA = "Данные успешно изменены!"
+        const val UPDATE_DATA_CAR_MANUAL =
+            "Эта опция позволяет изменять данные, указанные при регистрации." +
+                    "\n" + "Доступно:\n" +
+                    "\n" +
+                    "⚙\uFE0F Изменить номер автомобиля\n" +
+                    "\n" +
+                    "Введите новый номер вашего автомобиля:"
+
         const val SELECTION_OPTION = "" +
                 "Вы находитесь в главном меню Parking-Bot. \uD83D\uDE97\n" +
                 "Выберите одну из следующих опций:\n"
@@ -15,7 +23,7 @@ class ReplyMessageСonstant {
         const val GREETING : String =
             "" + "\n" + "Для регистрации в нашем сервисе, нажмите кнопку: Регистрация"
 
-        const val REGISTRATION_GUIDE = "Пожалуйста, отправьте сообщение " +
+        const val REGISTRATION_MANUAL = "Пожалуйста, отправьте сообщение " +
                 "с регистрационным номером вашего автомобиля." +
                 "\n" + "После отправки регистрация будет завершена"
 
@@ -27,8 +35,6 @@ class ReplyMessageСonstant {
         const val FAIL = "Введенный регистрационный номер автомобиля не найден." +
                 "\n" + "Пожалуйста, попробуйте еще раз."
 
-        const val CHOOSE_AN_ACTON : String = "" + "\n" + "Выберите опцию: " // тут нужно дать на выбор две кнопки,
-    // "Перекрыл выезд" и "Помощь"
     }
 }
 

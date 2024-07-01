@@ -1,6 +1,6 @@
-package com.web.parking.service.util
+package com.web.parking.service.util.param
 
-data class RegistrationProcessParams(
+data class RegistrationProcessParam(
     val chatId: Long,
     val telegramUserId: Long,
     val userName: String,

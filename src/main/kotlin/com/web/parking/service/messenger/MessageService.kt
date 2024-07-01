@@ -31,7 +31,7 @@ class MessageService(
         sendMessage(message).also { log.info { "Message has been sending to users" } }
     }
 
-    fun guideForUser(chatId: Long) {
+    fun manualForUser(chatId: Long) {
         val message = createMessage(chatId, ReplyMessageСonstant.SUCCESSFUL)
         val button = Button()
         button.menuButton(message)
@@ -44,8 +44,8 @@ class MessageService(
         val button = Button()
         val inlineKeyboardButtons = mutableListOf<List<InlineKeyboardButton>>()
 
-        inlineKeyboardButtons.add(button.buttonBlocked(message))
-        inlineKeyboardButtons.add(button.buttonRegistrationInline(message))
+        inlineKeyboardButtons.add(button.buttonBlocked())
+        inlineKeyboardButtons.add(button.changeDataCarUser())
 
         val inlineKeyboardMarkup = InlineKeyboardMarkup()
         inlineKeyboardMarkup.keyboard = inlineKeyboardButtons
@@ -53,6 +53,16 @@ class MessageService(
         message.replyMarkup = inlineKeyboardMarkup
 
         sendMessage(message).also { log.info { "Message has been sending to users" } }
+    }
+
+    fun changeCarDataUser(chatId: Long) {
+        val message = createMessage(chatId, ReplyMessageСonstant.UPDATE_DATA_CAR_MANUAL)
+        sendMessage(message)
+    }
+
+    fun changeCarDataSuccessfully(chatId: Long) {
+        val message = createMessage(chatId, ReplyMessageСonstant.SUCCESSFULLY_CHANGE_DATA)
+        sendMessage(message)
     }
 
     fun createMessage(chatId: Long, text: String): SendMessage {
