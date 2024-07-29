@@ -1,24 +1,80 @@
 package com.web.parking.service.util
 
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
 
-
 class Button {
-    fun buttonRegistration(message: SendMessage) {
+    fun createButton(nameButton: String,
+                     message: SendMessage,
+                     resize: Boolean,
+                     oneTime: Boolean,
+                     selective: Boolean
+    ) {
         val keyboardMarkup = ReplyKeyboardMarkup()
         val keyboardRow = KeyboardRow()
-        val registrationButton = KeyboardButton("Регистрация")
+        val exitBlockedButton = KeyboardButton(nameButton)
 
-        keyboardRow.add(registrationButton)
+        keyboardRow.add(exitBlockedButton)
         val keyboard = listOf(keyboardRow)
         keyboardMarkup.keyboard = keyboard
-        keyboardMarkup.resizeKeyboard = true
-        keyboardMarkup.oneTimeKeyboard = true
-        keyboardMarkup.selective = true
+        keyboardMarkup.resizeKeyboard = resize
+        keyboardMarkup.oneTimeKeyboard = oneTime
+        keyboardMarkup.selective = selective
 
         message.replyMarkup = keyboardMarkup
+    }
+
+    fun createInlineButton(
+        nameButton: String,
+        callbackData: String,
+        message: SendMessage
+    ) {
+        val inlineKeyboardMarkup = InlineKeyboardMarkup()
+        val inlineKeyboardButton = InlineKeyboardButton()
+        inlineKeyboardButton.text = nameButton
+        inlineKeyboardButton.callbackData = callbackData
+
+        val keyboardRow = listOf(inlineKeyboardButton)
+        val keyboard = listOf(keyboardRow)
+        inlineKeyboardMarkup.keyboard = keyboard
+
+        message.replyMarkup = inlineKeyboardMarkup
+    }
+
+    fun buttonRegistration(message: SendMessage) {
+        createButton( "Регистрация",
+            message,
+            resize = true,
+            oneTime = true,
+            selective = true
+        )
+    }
+
+    fun menuButton(message: SendMessage) {
+        createInlineButton(
+            "Главное Меню",
+            "head_menu",
+            message
+        )
+    }
+
+    fun changeDataCarUser(): List<InlineKeyboardButton> {
+        val button = InlineKeyboardButton().apply {
+            text = "Изменить данные"
+            callbackData = "change"
+        }
+        return listOf(button)
+    }
+
+    fun buttonBlocked(): List<InlineKeyboardButton> {
+        val button = InlineKeyboardButton().apply {
+            text = "Перекрыл выезд"
+            callbackData = "blocked_exit"
+        }
+        return listOf(button)
     }
 }

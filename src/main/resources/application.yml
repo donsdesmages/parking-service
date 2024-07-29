@@ -13,7 +13,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto:
+      ddl-auto: update
 
 bot:
   bot-name: ${BOT_NAME}

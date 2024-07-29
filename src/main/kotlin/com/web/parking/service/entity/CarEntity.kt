@@ -10,5 +10,5 @@ data class CarEntity(
     val id: Long? = null,
 
     @Column(name = "car_number")
-    val carNumber: String,
+    var carNumber: String,
 )
